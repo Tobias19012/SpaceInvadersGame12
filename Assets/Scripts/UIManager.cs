@@ -2,7 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-// Viser og skjuler paneler og opdaterer tekster. Læg scriptet på Canvas og træk alle felter ind i Inspector.
+// Viser og skjuler paneler og opdaterer tekster. Læg scriptet på Canvas og træk felterne ind i Inspector.
+// Alle felter er valgfrie: er et felt tomt, springes det bare over. Det gør, at UI'et kan bygges et stykke ad gangen.
 public class UIManager : MonoBehaviour
 {
     [Header("Paneler")]
@@ -35,11 +36,24 @@ public class UIManager : MonoBehaviour
 
     float bannerTimer;
 
+    static void SetActive(GameObject go, bool on)
+    {
+        if (go != null) go.SetActive(on);
+    }
+
+    static void SetText(TMP_Text t, string s)
+    {
+        if (t != null) t.text = s;
+    }
+
     void Start()
     {
-        foreach (Slider s in volumeSliders) s.SetValueWithoutNotify(AudioListener.volume);
+        if (volumeSliders != null)
+            foreach (Slider s in volumeSliders)
+                if (s != null) s.SetValueWithoutNotify(AudioListener.volume);
+
         RefreshColourLabels();
-        if (bannerText != null) bannerText.text = "";
+        SetText(bannerText, "");
     }
 
     void Update()
@@ -47,16 +61,16 @@ public class UIManager : MonoBehaviour
         GameManager gm = GameManager.Instance;
         if (gm == null) return;
 
-        scoreText.text = "SCORE " + gm.Score.ToString("D5");
-        waveText.text = "WAVE " + gm.Wave;
-        livesText.text = "SHARED LIVES " + gm.Lives;
-        p1AbilityText.text = AbilityLine(player1, "BURST");
-        p2AbilityText.text = AbilityLine(player2, "REPAIR");
+        SetText(scoreText, "SCORE " + gm.Score.ToString("D5"));
+        SetText(waveText, "WAVE " + gm.Wave);
+        SetText(livesText, "SHARED LIVES " + gm.Lives);
+        SetText(p1AbilityText, AbilityLine(player1, "BURST"));
+        SetText(p2AbilityText, AbilityLine(player2, "REPAIR"));
 
         if (bannerTimer > 0f)
         {
-            bannerTimer -= Time.deltaTime;
-            if (bannerTimer <= 0f) bannerText.text = "";
+            bannerTimer -= Time.unscaledDeltaTime;
+            if (bannerTimer <= 0f) SetText(bannerText, "");
         }
     }
 
@@ -71,33 +85,35 @@ public class UIManager : MonoBehaviour
 
     public void OnStateChanged(GameState s)
     {
-        menuPanel.SetActive(s == GameState.Menu);
-        hudPanel.SetActive(s != GameState.Menu);
-        pausePanel.SetActive(s == GameState.Paused);
-        upgradePanel.SetActive(s == GameState.Upgrade);
-        gameOverPanel.SetActive(s == GameState.GameOver);
+        SetActive(menuPanel, s == GameState.Menu);
+        SetActive(hudPanel, s != GameState.Menu);
+        SetActive(pausePanel, s == GameState.Paused);
+        SetActive(upgradePanel, s == GameState.Upgrade);
+        SetActive(gameOverPanel, s == GameState.GameOver);
     }
 
     public void ShowBanner(string text)
     {
-        bannerText.text = text;
+        SetText(bannerText, text);
         bannerTimer = 2f;
     }
 
     public void ShowUpgrade(int wave)
     {
-        upgradeTitle.text = "WAVE " + wave + " CLEARED";
+        SetText(upgradeTitle, "WAVE " + wave + " CLEARED");
     }
 
     public void ShowGameOver(int score, int wave, string cause, int kills, int shots, float time)
     {
-        gameOverText.text = "GAME OVER\nScore " + score + "   Wave " + wave + "\nCause: " + cause +
-                            "\nKills " + kills + "   Shots " + shots + "   Time " + time.ToString("F1") + "s";
-        if (telemetryPathText != null) telemetryPathText.text = "Telemetry: " + Telemetry.FilePath;
+        SetText(gameOverText, "GAME OVER\nScore " + score + "   Wave " + wave + "\nCause: " + cause +
+                              "\nKills " + kills + "   Shots " + shots + "   Time " + time.ToString("F1") + "s");
+        SetText(telemetryPathText, "Telemetry: " + Telemetry.FilePath);
     }
 
     public void RefreshColourLabels()
     {
-        foreach (TMP_Text t in colourLabels) t.text = "Colours: " + Palette.Names[Palette.Index];
+        if (colourLabels == null) return;
+        foreach (TMP_Text t in colourLabels)
+            if (t != null) t.text = "Colours: " + Palette.Names[Palette.Index];
     }
 }
