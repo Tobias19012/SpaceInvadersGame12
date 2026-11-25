@@ -93,7 +93,7 @@ public class GameManager : MonoBehaviour
     public void StartGame()
     {
         Score = 0;
-        Wave = 1;
+        Wave = 0;
         Lives = startLives;
         BunkerMaxHp = startBunkerHp;
         FireMult = 1f;
